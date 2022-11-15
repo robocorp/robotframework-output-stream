@@ -1,0 +1,81 @@
+- message_type: V
+  version: '1'
+- initial_time: '2022-10-31T09:16:39.244'
+  message_type: T
+- info: Generated from output.xml
+  message_type: I
+- info: Robot 5.0rc1 (Python 3.8.1 on win32)
+  message_type: I
+- message_type: SS
+  name: Robot3
+  suite_id: s1
+  suite_source: x:\vscode-robot\robotframework-lsp\robotframework-output-stream\tests\robot_stream_tests\test_robot_stream\robot3.robot
+  time_delta_in_seconds: -1.0
+- lineno: 6
+  message_type: ST
+  name: First test
+  suite_id: s1-t1
+  time_delta_in_seconds: -1.0
+- doc: ''
+  keyword_type: KEYWORD
+  libname: another_sub
+  lineno: -1
+  message_type: SK
+  name: Another in sub keyword
+  source: null
+  time_delta_in_seconds: -1.0
+- doc: Does absolutely nothing.
+  keyword_type: KEYWORD
+  libname: BuiltIn
+  lineno: -1
+  message_type: SK
+  name: No Operation
+  source: null
+  time_delta_in_seconds: -1.0
+- message_type: S
+  start_time_delta: 0.049
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0.05
+- doc: Logs the given message with the given level.
+  keyword_type: KEYWORD
+  libname: BuiltIn
+  lineno: -1
+  message_type: SK
+  name: Log
+  source: null
+  time_delta_in_seconds: -1.0
+- argument: Some error message
+  message_type: KA
+- argument: level=ERROR
+  message_type: KA
+- level: E
+  message: Some error message
+  message_type: L
+  time_delta_in_seconds: 0.05
+- message_type: S
+  start_time_delta: 0.05
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0.052
+- message_type: S
+  start_time_delta: 0.049
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0.052
+- message_type: S
+  start_time_delta: 0.048
+- message: ''
+  message_type: ET
+  status: PASS
+  time_delta_in_seconds: 0.052
+- message_type: S
+  start_time_delta: 0.012
+- message_type: ES
+  status: PASS
+  time_delta_in_seconds: -1.0
+- level: E
+  message: 'Error in file ''x:\vscode-robot\robotframework-lsp\robotframework-output-stream\tests\robot_stream_tests\test_robot_stream\sub\another_sub.robot''
+    on line 2: Library ''lib_not_there.py'' does not exist.'
+  message_type: L
+  time_delta_in_seconds: 0.045
