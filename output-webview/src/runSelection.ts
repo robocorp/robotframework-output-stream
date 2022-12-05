@@ -1,7 +1,7 @@
-import { createOption, divById, selectById } from "./plainDom";
+import { createOption, selectById } from "./plainDom";
 
-export function rebuildRunSelection(allRunIdsToLabel: object|undefined, currentRunId: string) {
-    if(allRunIdsToLabel === undefined){
+export function rebuildRunSelection(allRunIdsToLabel: object | undefined, currentRunId: string) {
+    if (allRunIdsToLabel === undefined) {
         return;
     }
     const runSelection = selectById("selectedRun");
