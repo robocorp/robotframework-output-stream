@@ -1,6 +1,6 @@
 import datetime
 import json
-from typing import Optional, Any
+from typing import Optional, Any, Iterator
 import sys
 
 __version__ = "0.0.2"
@@ -35,6 +35,9 @@ def _convert_to_bytes(s):
 
 
 class RFStream:
+    """
+    This is the class which should be registered as a listener.
+    """
 
     # V3 would be nicer but it doesn't support keywords...
     ROBOT_LISTENER_API_VERSION = 2
@@ -296,7 +299,23 @@ class RFStream:
         self.robot_output_impl.close()
 
 
-def iter_decoded_log_format(stream):
+def iter_decoded_log_format(stream) -> Iterator[dict]:
+    """
+    :param stream:
+        The stream which should be iterated in (anything with a `readlines()` method).
+
+    :returns:
+        An iterator which will decode the messages and provides a dictionary for
+        each message found.
+
+        Example of messages provided:
+
+        {'message_type': 'V', 'version': '1'}
+        {'message_type': 'T', 'initial_time': '2022-10-31T07:45:57.116'}
+        {'message_type': 'ID', 'part': 1, 'id': 'gen-from-output-xml'}
+        {'message_type': 'SS', 'name': 'Robot Check', 'suite_id': 's1', 'suite_source': 'x:\\vscode-robot\\local_test\\robot_check', 'time_delta_in_seconds': 0.3}
+        {'message_type': 'ST', 'name': 'My test', 'suite_id': 's1-s1-t1', 'lineno': 5, 'time_delta_in_seconds': 0.2}
+    """
     from ._decoder import iter_decoded_log_format
 
     return iter_decoded_log_format(stream)
