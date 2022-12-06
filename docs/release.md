@@ -2,30 +2,32 @@
 Steps to do a new release
 ---------------------------
 
-- Open a shell at the proper place (something as `X:\vscode-robot\robotframework-lsp\robotframework-output-stream`)
+- Open a shell at the proper place (something as `X:\vscode-robot\robotframework-output-stream`)
 
 - Create release branch (`git branch -D release-robotframework-output-stream&git checkout -b release-robotframework-output-stream`)
 
 - When leaving pre-alpha: Update classifier in setup.py (currently in pre-alpha) and notes regarding being alpha in README.md.
 
-- Update version (`python -m dev set-version 0.0.2`).
+- Update version (`python -m dev set-version 0.0.3`).
+
+- Update embedded index.html (`python -m dev build-output-view`).
 
 - Update README.md to add notes on features/fixes (on `robotframework-output-stream`).
 
 - Update changelog.md to add notes on features/fixes and set release date.
 
 - Push contents, and check if tests passed in https://github.com/robocorp/robotframework-lsp/actions.
-  - `mu acp Robot Framework Output Stream Release 0.0.2`
+  - `mu acp Robot Framework Output Stream Release 0.0.3`
 
 - Rebase with master (`git checkout master&git rebase release-robotframework-output-stream`).
 
-- Create a tag (`git tag robotframework-output-stream-0.0.2`) and push it.
+- Create a tag (`git tag robotframework-output-stream-0.0.3`) and push it.
 
 - Send release msg. i.e.:
 
 Hi @channel,
 
-I'm happy to announce the release of `Robot Framework Output Stream 0.0.2`.
+I'm happy to announce the release of `Robot Framework Output Stream 0.0.3`.
 
 *## Changes*
 
