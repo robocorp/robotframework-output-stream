@@ -5,10 +5,11 @@
 - id: 1234-uuid-in-tests
   message_type: ID
   part: 1
-- message_type: SS
-  name: Robot11
-  suite_id: s1
-  suite_source: <source>
+- level: E
+  message: 'RFStream internal error: Unexpected error...
+
+    '
+  message_type: L
   time_delta_in_seconds: 0
 - lineno: 2
   message_type: ST

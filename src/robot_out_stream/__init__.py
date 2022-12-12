@@ -2,6 +2,8 @@ import datetime
 import json
 from typing import Optional, Any, Iterator
 import sys
+import functools
+from io import StringIO
 
 __version__ = "0.0.3"
 version_info = [int(x) for x in __version__.split(".")]
@@ -32,6 +34,26 @@ def _convert_to_bytes(s):
         raise ValueError(f"Cannot get in bytes: {initial}")
 
     return conv(num)
+
+
+def log_error(func):
+    @functools.wraps(func)
+    def new_func(self, *args, **kwargs):
+        import traceback
+
+        try:
+            return func(self, *args, **kwargs)
+        except Exception as e:
+            s = StringIO()
+            traceback.print_exc(file=s)
+            self._robot_output_impl.log_message(
+                "ERROR",
+                f"RFStream internal error: {e}\n{s.getvalue()}",
+                self._robot_output_impl.get_time_delta(),
+                False,
+            )
+
+    return new_func
 
 
 class RFStream:
@@ -99,6 +121,7 @@ class RFStream:
             return time_delta
         return self._robot_output_impl.get_time_delta()
 
+    @log_error
     def start_suite(self, name, attributes):
         # {
         #     "id": "s1",
@@ -118,6 +141,7 @@ class RFStream:
             self._get_time_delta(attributes),
         )
 
+    @log_error
     def end_suite(self, name, attributes):
         # {
         #     "id": "s1",
@@ -139,6 +163,7 @@ class RFStream:
             attributes["id"], attributes["status"], self._get_time_delta(attributes)
         )
 
+    @log_error
     def start_test(self, name, attributes):
         # {
         #     "id": "s1-t1",
@@ -161,15 +186,19 @@ class RFStream:
             attributes.get("tags"),
         )
 
+    @log_error
     def send_tag(self, tag: str):
         return self._robot_output_impl.send_tag(tag)
 
+    @log_error
     def send_info(self, info: str):
         return self._robot_output_impl.send_info(info)
 
+    @log_error
     def send_start_time_delta(self, time_delta_in_seconds: float):
         return self._robot_output_impl.send_start_time_delta(time_delta_in_seconds)
 
+    @log_error
     def end_test(self, name, attributes):
         # {
         #     "id": "s1-t2",
@@ -196,6 +225,7 @@ class RFStream:
     class _Sentinel:
         pass
 
+    @log_error
     def start_keyword(self, name, attributes):
 
         # {
@@ -247,6 +277,7 @@ class RFStream:
             attributes.get("assign"),
         )
 
+    @log_error
     def end_keyword(self, name, attributes):
         # {
         #     "doc": "Does absolutely nothing.",
@@ -270,6 +301,7 @@ class RFStream:
             name, libname, attributes["status"], self._get_time_delta(attributes)
         )
 
+    @log_error
     def log_message(self, message, skip_error=True):
         # {
         #     "timestamp": "20221026 10:00:31.591",
@@ -295,10 +327,12 @@ class RFStream:
             level, message["message"], self._get_time_delta(message), html
         )
 
+    @log_error
     def message(self, message):
         if message["level"] in ("FAIL", "ERROR"):
             return self.log_message(message, skip_error=False)
 
+    @log_error
     def close(self):
         self.robot_output_impl.close()
 
