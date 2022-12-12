@@ -305,7 +305,8 @@ class _XmlSaxParser(xml.sax.handler.ContentHandler):
             )
 
             self._listener.end_suite(
-                s.attrs["name"], {"status": status, "timedelta": -1}
+                s.attrs["name"],
+                {"status": status, "timedelta": -1, "id": s.attrs["id"]},
             )
 
     def start_test(self, attrs):
@@ -330,6 +331,7 @@ class _XmlSaxParser(xml.sax.handler.ContentHandler):
             self._listener.end_test(
                 s.attrs["name"],
                 {
+                    "id": s.attrs["id"],
                     "status": status,
                     "timedelta": s.status.compute_end_timedelta(
                         self._listener.initial_time
@@ -405,6 +407,7 @@ class _XmlSaxParser(xml.sax.handler.ContentHandler):
             self._listener.end_keyword(
                 s.name,
                 {
+                    "kwname": s.name,
                     "status": status,
                     "timedelta": s.status.compute_end_timedelta(
                         self._listener.initial_time

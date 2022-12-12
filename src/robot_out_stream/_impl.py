@@ -8,6 +8,7 @@ from typing import Optional, Callable
 import os
 import traceback
 from contextlib import contextmanager
+import sys
 
 
 _valid_chars = tuple(string.ascii_letters + string.digits)
@@ -78,7 +79,9 @@ class _RotateHandler:
 
 
 class _StackEntry:
-    def __init__(self, msg_type, new_msg_type):
+    def __init__(self, entry_type, entry_id, msg_type, new_msg_type):
+        self.entry_type = entry_type
+        self.entry_id = entry_id
         self.msg_type = msg_type
         self.new_msg_type = new_msg_type
         self._messages: List[str] = []
@@ -101,9 +104,9 @@ class _StackHandler:
         self._record_to = None
 
     @contextmanager
-    def push_record(self, msg_type, new_msg_type):
+    def push_record(self, entry_type, entry_id, msg_type, new_msg_type):
         self.recording_writes = True
-        self._record_to = _StackEntry(msg_type, new_msg_type)
+        self._record_to = _StackEntry(entry_type, entry_id, msg_type, new_msg_type)
         try:
             yield
         finally:
@@ -113,8 +116,53 @@ class _StackHandler:
     def record_msg(self, msg):
         self._record_to.append(msg)
 
-    def pop(self):
-        self._queue.pop(-1)
+    def pop(self, entry_type, entry_id):
+        if not self._queue:
+            sys.stderr.write(
+                f"RFStream Warning: unable to pop {entry_type} - {entry_id} (empty queue).\n"
+            )
+        else:
+            stack_entry = self._queue[-1]
+            if (
+                stack_entry.entry_type == entry_type
+                and stack_entry.entry_id == entry_id
+            ):
+                self._queue.pop(-1)
+            else:
+                for i, stack_entry in enumerate(reversed(self._queue)):
+                    if (
+                        stack_entry.entry_type == entry_type
+                        and stack_entry.entry_id == entry_id
+                    ):
+                        for _ in range(i):
+                            stack_entry = self._queue.pop(-1)
+                            sys.stderr.write(
+                                f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
+                            )
+
+                        # The current one (which is a match).
+                        self._queue.pop(-1)
+                        return
+
+                if entry_type in ("test", "suite"):
+                    for i, stack_entry in enumerate(reversed(self._queue)):
+                        if stack_entry.entry_type == entry_type:
+                            for _ in range(i):
+                                stack_entry = self._queue.pop(-1)
+                                sys.stderr.write(
+                                    f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
+                                )
+
+                            # The current one (which is a partial match).
+                            stack_entry = self._queue.pop(-1)
+                            sys.stderr.write(
+                                f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} pop just by type. Actual request: {entry_type} - {entry_id}\n"
+                            )
+                            return
+
+                sys.stderr.write(
+                    f"RFStream Warning: unable to pop {entry_type} - {entry_id} because it does not match the current top: {stack_entry.entry_type} - {stack_entry.entry_id}\n"
+                )
 
     def __iter__(self):
         for stack_entry in self._queue:
@@ -197,8 +245,6 @@ class _RobotOutputImpl:
             self._write_on_start_or_after_rotate()
 
     def _write_on_start_or_after_rotate(self):
-        import sys
-
         if self._current_file is not None:
             print("RFStream output: ", self._current_file.absolute())
 
@@ -288,7 +334,7 @@ class _RobotOutputImpl:
 
     def start_suite(self, name, suite_id, suite_source, time_delta):
         oid = self._obtain_id
-        with self._stack_handler.push_record("SS", "RS"):
+        with self._stack_handler.push_record("suite", suite_id, "SS", "RS"):
             self._write_with_separator(
                 "SS ",
                 [
@@ -299,7 +345,7 @@ class _RobotOutputImpl:
                 ],
             )
 
-    def end_suite(self, status, time_delta):
+    def end_suite(self, suite_id, status, time_delta):
         oid = self._obtain_id
         self._write_with_separator(
             "ES ",
@@ -308,11 +354,11 @@ class _RobotOutputImpl:
                 self._number(time_delta),
             ],
         )
-        self._stack_handler.pop()
+        self._stack_handler.pop("suite", suite_id)
 
     def start_test(self, name, test_id, test_line, time_delta, tags):
         oid = self._obtain_id
-        with self._stack_handler.push_record("ST", "RT"):
+        with self._stack_handler.push_record("test", test_id, "ST", "RT"):
             self._write_with_separator(
                 "ST ",
                 [
@@ -342,7 +388,7 @@ class _RobotOutputImpl:
     def send_start_time_delta(self, time_delta_in_seconds: float):
         self._write_with_separator("S ", (self._number(time_delta_in_seconds),))
 
-    def end_test(self, status, message, time_delta):
+    def end_test(self, test_id, status, message, time_delta):
         oid = self._obtain_id
         self._write_with_separator(
             "ET ",
@@ -352,7 +398,7 @@ class _RobotOutputImpl:
                 self._number(time_delta),
             ],
         )
-        self._stack_handler.pop()
+        self._stack_handler.pop("test", test_id)
 
     def start_keyword(
         self,
@@ -368,7 +414,8 @@ class _RobotOutputImpl:
     ):
         keyword_type = keyword_type.upper()
         oid = self._obtain_id
-        with self._stack_handler.push_record("SK", "RK"):
+        keyword_id = f"{libname}.{name}"
+        with self._stack_handler.push_record("keyword", keyword_id, "SK", "RK"):
             self._write_with_separator(
                 "SK ",
                 [
@@ -399,7 +446,8 @@ class _RobotOutputImpl:
                         ],
                     )
 
-    def end_keyword(self, status, time_delta):
+    def end_keyword(self, name, libname, status, time_delta):
+        keyword_id = f"{libname}.{name}"
         oid = self._obtain_id
         self._write_with_separator(
             "EK ",
@@ -408,7 +456,7 @@ class _RobotOutputImpl:
                 self._number(time_delta),
             ],
         )
-        self._stack_handler.pop()
+        self._stack_handler.pop("keyword", keyword_id)
 
     def log_message(self, level, message, time_delta, html):
         oid = self._obtain_id

@@ -136,7 +136,7 @@ class RFStream:
         #     "statistics": "2 tasks, 1 passed, 1 failed",
         # }
         return self._robot_output_impl.end_suite(
-            attributes["status"], self._get_time_delta(attributes)
+            attributes["id"], attributes["status"], self._get_time_delta(attributes)
         )
 
     def start_test(self, name, attributes):
@@ -187,6 +187,7 @@ class RFStream:
         #     "originalname": "Second task",
         # }
         return self._robot_output_impl.end_test(
+            attributes["id"],
             attributes["status"],
             attributes["message"],
             self._get_time_delta(attributes),
@@ -262,8 +263,11 @@ class RFStream:
         #     "libname": "BuiltIn",
         #     "args": [],
         # }
+        name = attributes["kwname"]
+        libname = attributes.get("libname")
+
         return self._robot_output_impl.end_keyword(
-            attributes["status"], self._get_time_delta(attributes)
+            name, libname, attributes["status"], self._get_time_delta(attributes)
         )
 
     def log_message(self, message, skip_error=True):
