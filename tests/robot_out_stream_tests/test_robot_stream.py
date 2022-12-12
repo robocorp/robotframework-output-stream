@@ -257,3 +257,40 @@ def test_robot_return(datadir, data_regression):
 
 def test_robot_embed_img(datadir, data_regression):
     check(datadir, data_regression, "robot11.robot")
+
+
+@contextmanager
+def after(obj, method_name, callback):
+    original_method = getattr(obj, method_name)
+
+    @functools.wraps(original_method)
+    def new_method(*args, **kwargs):
+        ret = original_method(*args, **kwargs)
+        callback(*args, **kwargs)
+        return ret
+
+    setattr(obj, method_name, new_method)
+    try:
+        yield
+    finally:
+        setattr(obj, method_name, original_method)
+
+
+def test_robot_stream_unexpected_errors(datadir, data_regression):
+    from robot_out_stream import RFStream
+
+    def throw_error(*args, **kwargs):
+        raise RuntimeError("Unexpected error...")
+
+    ctx = []
+
+    def after_init(self, *args, **kwargs):
+        before_ctx = before(self._robot_output_impl, "start_suite", throw_error)
+        # before_ctx.__enter__()
+        # ctx.append(before_ctx)
+
+    with after(RFStream, "__init__", after_init):
+        check(datadir, data_regression, "robot11.robot")
+
+    for c in ctx:
+        c.__exit__(None, None, None)
