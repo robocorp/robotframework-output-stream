@@ -1,3 +1,9 @@
+New in 0.0.4 (2022-12-13)
+-----------------------------
+
+- Improved handling in case some internal exception happens.
+
+
 New in 0.0.3 (2022-12-06)
 -----------------------------
 

@@ -8,7 +8,7 @@ Steps to do a new release
 
 - When leaving pre-alpha: Update classifier in setup.py (currently in pre-alpha) and notes regarding being alpha in README.md.
 
-- Update version (`python -m dev set-version 0.0.3`).
+- Update version (`python -m dev set-version 0.0.4`).
 
 - Update embedded index.html (`python -m dev build-output-view`).
 
@@ -17,17 +17,17 @@ Steps to do a new release
 - Update changelog.md to add notes on features/fixes and set release date.
 
 - Push contents, and check if tests passed in https://github.com/robocorp/robotframework-lsp/actions.
-  - `mu acp Robot Framework Output Stream Release 0.0.3`
+  - `mu acp Robot Framework Output Stream Release 0.0.4`
 
 - Rebase with master (`git checkout master&git rebase release-robotframework-output-stream`).
 
-- Create a tag (`git tag robotframework-output-stream-0.0.3`) and push it.
+- Create a tag (`git tag robotframework-output-stream-0.0.4`) and push it.
 
 - Send release msg. i.e.:
 
 Hi @channel,
 
-I'm happy to announce the release of `Robot Framework Output Stream 0.0.3`.
+I'm happy to announce the release of `Robot Framework Output Stream 0.0.4`.
 
 *## Changes*
 
