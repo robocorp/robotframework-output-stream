@@ -13,9 +13,10 @@ The default Robot Framework output and reports quickly get really big or break w
 The default output of Robot Framework (output.xml, log.html and report.html):
 * Unable to stream the log by default during the run
 * The output generation is a resource-heavy task that can and does break executions.
-* `output.xml`, `log.html`, `report.html` duplicate data
-* The output.xml needs "closing", so any problems while exporting yield a corrupted XML file and no logs.
-* Post-processing is only possible in some cases and is also resource intensive.
+* `output.xml`, `log.html`, `report.html` get really big on disk.
+* The `output.xml` needs "closing", so any problems while creating it yield a corrupted XML file and no logs.
+  * Post-processing is only possible in some cases and is also resource intensive.
+  * ..and in cases where the `output.xml` already breaks the post-processing is not possible.
 * Flattening and changing the robot code is a big task and is only sometimes possible.
 
 ### Scoping the solution
@@ -25,6 +26,7 @@ We need:
 * Ability to control how much space the logs can take.
 * Ability to stream the log during the run
 * Match the original data content, so it is possible to create the existing logs from the new data format.
+* Solution needs to work without changes to the robot code itself.
 
 ## What
 
