@@ -101,7 +101,7 @@ Open Output View For Tests
     ${curdir_proper_slashes}=    Replace String    ${CURDIR}    \\    /
     ${filepath}=    Set Variable    ${curdir_proper_slashes}/../dist-test/index.html
     ${exists}=    RPA.FileSystem.Does File Exist    ${filepath}
-    Should Be True    ${exists}
+    Should Be True    ${exists}    File "${filepath}"" does not exist (distribution does not seem to be built).
 
     ${fileuri}=    uris.From Fs Path    ${filepath}
     RPA.Browser.Playwright.Set Browser Timeout    3

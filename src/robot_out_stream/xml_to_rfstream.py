@@ -68,11 +68,15 @@ class _KeywordData(_AbstractKeywordData):
         return self.attrs.get("name")
 
     @property
+    def library(self):
+        return self.attrs.get("library")
+
+    @property
     def type(self):
         return "KEYWORD"
 
     def __str__(self):
-        return f"_KeywordData({self.name})"
+        return f"_KeywordData({self.library} {self.name})"
 
     __repr__ = __str__
 
@@ -413,6 +417,7 @@ class _XmlSaxParser(xml.sax.handler.ContentHandler):
                         self._listener.initial_time
                     ),
                     "message": "",
+                    "libname": getattr(s, "library", None),
                 },
             )
 
