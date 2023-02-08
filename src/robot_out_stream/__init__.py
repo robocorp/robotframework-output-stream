@@ -1,9 +1,10 @@
 import datetime
 import json
-from typing import Optional, Any, Iterator
+from typing import Optional, Any, Iterator, List
 import sys
 import functools
 from io import StringIO
+import weakref
 
 __version__ = "0.0.4"
 version_info = [int(x) for x in __version__.split(".")]
@@ -103,6 +104,9 @@ class RFStream:
         config.additional_info = kwargs.get("__additional_info__")
 
         self._robot_output_impl = _RobotOutputImpl(config)
+        self._skip_log_keywords = 0
+        self._skip_log_arguments = 0
+        __all_rf_stream_instances__.add(self)
 
     @property
     def robot_output_impl(self):
@@ -120,6 +124,36 @@ class RFStream:
         if time_delta is not None:
             return time_delta
         return self._robot_output_impl.get_time_delta()
+
+    def start_logging_keywords(self):
+        if self._skip_log_keywords <= 0:
+            self._robot_output_impl.log_message(
+                "ERROR",
+                f"RFStream error: start_logging_keywords() called before stop_logging_keywords() (call is ignored as logging is already on).",
+                self._robot_output_impl.get_time_delta(),
+                False,
+            )
+            return
+
+        self._skip_log_keywords -= 1
+
+    def stop_logging_keywords(self):
+        self._skip_log_keywords += 1
+
+    def start_logging_keyword_arguments(self):
+        if self._skip_log_arguments <= 0:
+            self._robot_output_impl.log_message(
+                "ERROR",
+                f"RFStream error: start_logging_keyword_arguments() called before stop_logging_keyword_arguments() (call is ignored as logging is already on).",
+                self._robot_output_impl.get_time_delta(),
+                False,
+            )
+            return
+
+        self._skip_log_arguments -= 1
+
+    def stop_logging_keyword_arguments(self):
+        self._skip_log_arguments += 1
 
     @log_error
     def start_suite(self, name, attributes):
@@ -188,6 +222,9 @@ class RFStream:
 
     @log_error
     def send_tag(self, tag: str):
+        if self._skip_log_keywords:
+            return
+
         return self._robot_output_impl.send_tag(tag)
 
     @log_error
@@ -196,6 +233,9 @@ class RFStream:
 
     @log_error
     def send_start_time_delta(self, time_delta_in_seconds: float):
+        if self._skip_log_keywords:
+            return
+
         return self._robot_output_impl.send_start_time_delta(time_delta_in_seconds)
 
     @log_error
@@ -227,6 +267,21 @@ class RFStream:
 
     @log_error
     def start_keyword(self, name, attributes):
+        tags = attributes.get("tags")
+        if tags:
+            if "log:ignore-keywords" in tags:
+                self._skip_log_keywords += 1
+            if "log:ignore-keyword-arguments" in tags:
+                self._skip_log_arguments += 1
+
+        name = attributes["kwname"]
+
+        if self._skip_log_keywords:
+            if name.lower().replace(" ", "") not in (
+                "stoploggingkeywords",
+                "startloggingkeywords",
+            ):
+                return
 
         # {
         #     "doc": "Does absolutely nothing.",
@@ -265,44 +320,66 @@ class RFStream:
 
                 f = f.f_back
 
+        args = attributes.get("args")
+        if args:
+            if self._skip_log_arguments:
+                args = None
+
         return self._robot_output_impl.start_keyword(
-            attributes["kwname"],
+            name,
             attributes.get("libname"),
             attributes.get("type"),
             attributes.get("doc"),
             source,
             lineno,
             self._get_time_delta(attributes),
-            attributes.get("args"),
+            args,
             attributes.get("assign"),
         )
 
     @log_error
     def end_keyword(self, name, attributes):
-        # {
-        #     "doc": "Does absolutely nothing.",
-        #     "assign": [],
-        #     "tags": [],
-        #     "lineno": 7,
-        #     "source": "C:\\Users\\fabio\\AppData\\Local\\Temp\\pytest-of-fabio\\pytest-191\\test_robot_out_stream0\\test_robot_out_stream\\robot1.robot",
-        #     "type": "KEYWORD",
-        #     "status": "PASS",
-        #     "starttime": "20221004 16:27:46.959",
-        #     "endtime": "20221004 16:27:46.959",
-        #     "elapsedtime": 0,
-        #     "kwname": "No Operation",
-        #     "libname": "BuiltIn",
-        #     "args": [],
-        # }
-        name = attributes["kwname"]
-        libname = attributes.get("libname")
+        try:
+            name = attributes["kwname"]
+            if self._skip_log_keywords:
+                if name.lower().replace(" ", "") not in (
+                    "stoploggingkeywords",
+                    "startloggingkeywords",
+                ):
+                    return
 
-        return self._robot_output_impl.end_keyword(
-            name, libname, attributes["status"], self._get_time_delta(attributes)
-        )
+            # {
+            #     "doc": "Does absolutely nothing.",
+            #     "assign": [],
+            #     "tags": [],
+            #     "lineno": 7,
+            #     "source": "C:\\Users\\fabio\\AppData\\Local\\Temp\\pytest-of-fabio\\pytest-191\\test_robot_out_stream0\\test_robot_out_stream\\robot1.robot",
+            #     "type": "KEYWORD",
+            #     "status": "PASS",
+            #     "starttime": "20221004 16:27:46.959",
+            #     "endtime": "20221004 16:27:46.959",
+            #     "elapsedtime": 0,
+            #     "kwname": "No Operation",
+            #     "libname": "BuiltIn",
+            #     "args": [],
+            # }
+            libname = attributes.get("libname")
+
+            return self._robot_output_impl.end_keyword(
+                name, libname, attributes["status"], self._get_time_delta(attributes)
+            )
+        finally:
+            tags = attributes.get("tags")
+            if tags:
+                if "log:ignore-keywords" in tags:
+                    self._skip_log_keywords -= 1
+                if "log:ignore-keyword-arguments" in tags:
+                    self._skip_log_arguments -= 1
 
     @log_error
     def log_message(self, message, skip_error=True):
+        if self._skip_log_keywords:
+            return
         # {
         #     "timestamp": "20221026 10:00:31.591",
         #     "message": "${dct} = {'a': '1', 'b': '1'}",
@@ -357,3 +434,34 @@ def iter_decoded_log_format(stream) -> Iterator[dict]:
     from ._decoder import iter_decoded_log_format
 
     return iter_decoded_log_format(stream)
+
+
+__all_rf_stream_instances__: "weakref.WeakSet[RFStream]" = weakref.WeakSet()
+
+
+def stop_logging_keywords():
+    for rf_stream in tuple(__all_rf_stream_instances__):
+        rf_stream.stop_logging_keywords()
+
+
+def start_logging_keywords():
+    for rf_stream in tuple(__all_rf_stream_instances__):
+        rf_stream.start_logging_keywords()
+
+
+def stop_logging_keyword_arguments():
+    for rf_stream in tuple(__all_rf_stream_instances__):
+        rf_stream.stop_logging_keyword_arguments()
+
+
+def start_logging_keyword_arguments():
+    for rf_stream in tuple(__all_rf_stream_instances__):
+        rf_stream.start_logging_keyword_arguments()
+
+
+__all__ = [
+    "start_logging_keywords",
+    "stop_logging_keywords",
+    "stop_logging_keyword_arguments",
+    "start_logging_keyword_arguments",
+]
