@@ -1,3 +1,12 @@
+New in 0.0.5 (2022-02-09)
+-----------------------------
+
+- Fixed one issue generating the output from the standard Robot Framework XML.
+- Added API to stop and start logging keywords or keyword arguments.
+- Added API to add a string to be hidden from the logs.
+- Automatically hide the contents of variables named `*password*` or `*passwd*`. 
+
+
 New in 0.0.4 (2022-12-13)
 -----------------------------
 

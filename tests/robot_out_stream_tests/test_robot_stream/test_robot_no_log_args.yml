@@ -26,9 +26,9 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: log
-  lineno: 16
+  lineno: 17
   message_type: SK
-  name: Stop Logging Keyword Arguments
+  name: Stop Logging Variables
   source: <source>
   time_delta_in_seconds: 0
 - message_type: EK
@@ -37,7 +37,7 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: ''
-  lineno: 17
+  lineno: 18
   message_type: SK
   name: Keyword to check
   source: <source>
@@ -63,9 +63,9 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: log
-  lineno: 18
+  lineno: 19
   message_type: SK
-  name: Start Logging Keyword Arguments
+  name: Start Logging Variables
   source: <source>
   time_delta_in_seconds: 0
 - message_type: EK

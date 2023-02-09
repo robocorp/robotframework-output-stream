@@ -10,7 +10,8 @@ Check no log
 *** Keywords ***
 This should not be logged
     [Arguments]    ${arg1}    ${arg2}
-    Log To Console    ${arg1} - ${arg2}
+    Log    Still log this    level=WARN
+    Log    Dont log this
 
 Some Keyword
     Stop Logging keywords

@@ -144,11 +144,11 @@ class RFStream:
     def stop_logging_keywords(self):
         self._skip_log_keywords += 1
 
-    def start_logging_keyword_arguments(self):
+    def start_logging_variables(self):
         if self._skip_log_arguments <= 0:
             self._robot_output_impl.log_message(
                 "ERROR",
-                f"RFStream error: start_logging_keyword_arguments() called before stop_logging_keyword_arguments() (call is ignored as logging is already on).",
+                f"RFStream error: start_logging_variables() called before stop_logging_variables() (call is ignored as logging is already on).",
                 self._robot_output_impl.get_time_delta(),
                 False,
             )
@@ -156,7 +156,7 @@ class RFStream:
 
         self._skip_log_arguments -= 1
 
-    def stop_logging_keyword_arguments(self):
+    def stop_logging_variables(self):
         self._skip_log_arguments += 1
 
     @log_error
@@ -333,7 +333,10 @@ class RFStream:
 
         kw_type = attributes.get("type")
         kw_doc = attributes.get("doc")
-        libname = attributes.get("libname")
+        libname = attributes.get("libname", "")
+        if libname is None:
+            libname = ""
+
         kw_assign = attributes.get("assign")
         return self._robot_output_impl.start_keyword(
             name,
@@ -373,7 +376,9 @@ class RFStream:
             #     "libname": "BuiltIn",
             #     "args": [],
             # }
-            libname = attributes.get("libname")
+            libname = attributes.get("libname", "")
+            if libname is None:
+                libname = ""
 
             return self._robot_output_impl.end_keyword(
                 name, libname, attributes["status"], self._get_time_delta(attributes)
@@ -388,8 +393,6 @@ class RFStream:
 
     @log_error
     def log_message(self, message, skip_error=True):
-        if self._skip_log_keywords:
-            return
         # {
         #     "timestamp": "20221026 10:00:31.591",
         #     "message": "${dct} = {'a': '1', 'b': '1'}",
@@ -408,6 +411,10 @@ class RFStream:
             # and some errors such as import errors are only reported
             # in 'message' and not 'log_message').
             return
+
+        if self._skip_log_keywords:
+            if level not in ("ERROR", "FAIL", "WARN"):
+                return
 
         html = message.get("html")
         return self._robot_output_impl.log_message(
@@ -459,14 +466,14 @@ def start_logging_keywords():
         rf_stream.start_logging_keywords()
 
 
-def stop_logging_keyword_arguments():
+def stop_logging_variables():
     for rf_stream in tuple(__all_rf_stream_instances__):
-        rf_stream.stop_logging_keyword_arguments()
+        rf_stream.stop_logging_variables()
 
 
-def start_logging_keyword_arguments():
+def start_logging_variables():
     for rf_stream in tuple(__all_rf_stream_instances__):
-        rf_stream.start_logging_keyword_arguments()
+        rf_stream.start_logging_variables()
 
 
 def hide_from_output(string_to_hide):
@@ -477,7 +484,7 @@ def hide_from_output(string_to_hide):
 __all__ = [
     "start_logging_keywords",
     "stop_logging_keywords",
-    "stop_logging_keyword_arguments",
-    "start_logging_keyword_arguments",
+    "stop_logging_variables",
+    "start_logging_variables",
     "hide_from_output",
 ]

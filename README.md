@@ -46,6 +46,11 @@ Install with:
 * More details on the arguments are below.
 
 
+## Dealing with sensitive data in the logs
+
+* [Handling Sensitive Data](/docs/handling_sensitive_data.md)
+
+
 ## How
 
 The "how" of the solution is essentially the listener arguments, data format and the parsers:

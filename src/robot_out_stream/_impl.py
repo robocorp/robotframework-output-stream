@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Iterator, List, Sequence
+from typing import Dict, Iterator, List, Sequence, Set, Pattern
 import json
 import itertools
 import string
@@ -215,8 +215,8 @@ class _RobotOutputImpl:
             self._current_entry = 1
             self._write_on_start_or_after_rotate()
 
-        self._hide_strings_re = None
-        self._hide_strings = set()
+        self._hide_strings_re: Optional[Pattern[str]] = None
+        self._hide_strings: Set[str] = set()
 
     def hide_from_output(self, string_to_hide: str) -> None:
         import re

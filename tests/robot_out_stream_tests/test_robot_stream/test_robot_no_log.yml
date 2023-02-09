@@ -26,7 +26,7 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: log
-  lineno: 16
+  lineno: 17
   message_type: SK
   name: Stop Logging Keywords
   source: <source>
@@ -34,10 +34,14 @@
 - message_type: EK
   status: PASS
   time_delta_in_seconds: 0
+- level: W
+  message: Still log this
+  message_type: L
+  time_delta_in_seconds: 0
 - doc: <doc>
   keyword_type: KEYWORD
   libname: log
-  lineno: 18
+  lineno: 19
   message_type: SK
   name: Start Logging Keywords
   source: <source>
