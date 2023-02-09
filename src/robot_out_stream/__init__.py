@@ -106,7 +106,11 @@ class RFStream:
         self._robot_output_impl = _RobotOutputImpl(config)
         self._skip_log_keywords = 0
         self._skip_log_arguments = 0
+
         __all_rf_stream_instances__.add(self)
+
+    def hide_from_output(self, string_to_hide: str) -> None:
+        self._robot_output_impl.hide_from_output(string_to_hide)
 
     @property
     def robot_output_impl(self):
@@ -276,8 +280,10 @@ class RFStream:
 
         name = attributes["kwname"]
 
+        normalized_name = name.lower().replace(" ", "")
         if self._skip_log_keywords:
-            if name.lower().replace(" ", "") not in (
+
+            if normalized_name not in (
                 "stoploggingkeywords",
                 "startloggingkeywords",
             ):
@@ -322,19 +328,23 @@ class RFStream:
 
         args = attributes.get("args")
         if args:
-            if self._skip_log_arguments:
-                args = None
+            if self._skip_log_arguments or normalized_name == "hidefromoutput":
+                args = ("<redacted>",)
 
+        kw_type = attributes.get("type")
+        kw_doc = attributes.get("doc")
+        libname = attributes.get("libname")
+        kw_assign = attributes.get("assign")
         return self._robot_output_impl.start_keyword(
             name,
-            attributes.get("libname"),
-            attributes.get("type"),
-            attributes.get("doc"),
+            libname,
+            kw_type,
+            kw_doc,
             source,
             lineno,
             self._get_time_delta(attributes),
             args,
-            attributes.get("assign"),
+            kw_assign,
         )
 
     @log_error
@@ -459,9 +469,15 @@ def start_logging_keyword_arguments():
         rf_stream.start_logging_keyword_arguments()
 
 
+def hide_from_output(string_to_hide):
+    for rf_stream in tuple(__all_rf_stream_instances__):
+        rf_stream.hide_from_output(string_to_hide)
+
+
 __all__ = [
     "start_logging_keywords",
     "stop_logging_keywords",
     "stop_logging_keyword_arguments",
     "start_logging_keyword_arguments",
+    "hide_from_output",
 ]

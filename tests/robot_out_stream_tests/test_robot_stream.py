@@ -298,6 +298,10 @@ def test_robot_no_log_args_by_tag(datadir, data_regression):
     check(datadir, data_regression, "robot_nolog_args_by_tag.robot")
 
 
+def test_robot_no_log_args_by_name(datadir, data_regression):
+    check(datadir, data_regression, "robot_nolog_args_by_name.robot")
+
+
 def test_robot_stream_unexpected_errors(datadir, data_regression):
     # Some scaffolding to generate an error in the start_suite.
     from robot_out_stream import RFStream

@@ -215,6 +215,19 @@ class _RobotOutputImpl:
             self._current_entry = 1
             self._write_on_start_or_after_rotate()
 
+        self._hide_strings_re = None
+        self._hide_strings = set()
+
+    def hide_from_output(self, string_to_hide: str) -> None:
+        import re
+
+        self._hide_strings.add(string_to_hide)
+        lst = []
+        for s in self._hide_strings:
+            lst.append(re.escape(s))
+
+        self._hide_strings_re = re.compile("|".join(lst))
+
     @property
     def current_file(self) -> Optional[Path]:
         return self._current_file
@@ -431,6 +444,14 @@ class _RobotOutputImpl:
 
             if assigns:
                 for assign in assigns:
+                    lower_assign = assign.lower()
+                    for p in ("password", "passwd"):
+                        if p in lower_assign:
+                            if args:
+                                for arg in args:
+                                    self.hide_from_output(arg)
+                            break
+
                     self._write_with_separator(
                         "AS ",
                         [
@@ -439,6 +460,10 @@ class _RobotOutputImpl:
                     )
             if args:
                 for arg in args:
+                    hide_strings_re = self._hide_strings_re
+                    if hide_strings_re:
+                        arg = hide_strings_re.sub("<redacted>", arg)
+
                     self._write_with_separator(
                         "KA ",
                         [
@@ -465,6 +490,14 @@ class _RobotOutputImpl:
         if html in ("true", "yes", 1, True):
             # From output.xml it's "true", from listener it's "yes".
             msg_type = "LH "
+
+            hide_strings_re = self._hide_strings_re
+            if hide_strings_re:
+                message = hide_strings_re.sub("&lt;redacted&gt;", message)
+        else:
+            hide_strings_re = self._hide_strings_re
+            if hide_strings_re:
+                message = hide_strings_re.sub("<redacted>", message)
 
         self._write_with_separator(
             msg_type,

@@ -6,7 +6,7 @@
   message_type: ID
   part: 1
 - message_type: SS
-  name: Robot Nolog Arguments
+  name: Robot Nolog Args By Name
   suite_id: s1
   suite_source: <source>
   time_delta_in_seconds: 0
@@ -17,19 +17,19 @@
   time_delta_in_seconds: 0
 - doc: <doc>
   keyword_type: KEYWORD
-  libname: ''
-  lineno: 7
+  libname: BuiltIn
+  lineno: 8
   message_type: SK
-  name: Some Keyword
+  name: Set Variable
   source: <source>
   time_delta_in_seconds: 0
-- doc: <doc>
-  keyword_type: KEYWORD
-  libname: log
-  lineno: 16
-  message_type: SK
-  name: Stop Logging Keyword Arguments
-  source: <source>
+- assign: ${password}
+  message_type: AS
+- argument: <redacted>
+  message_type: KA
+- level: I
+  message: ${password} = <redacted>
+  message_type: L
   time_delta_in_seconds: 0
 - message_type: EK
   status: PASS
@@ -37,9 +37,52 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: ''
-  lineno: 17
+  lineno: 9
   message_type: SK
-  name: Keyword to check
+  name: Some Keyword
+  source: <source>
+  time_delta_in_seconds: 0
+- argument: ${password}
+  message_type: KA
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: BuiltIn
+  lineno: 19
+  message_type: SK
+  name: Log
+  source: <source>
+  time_delta_in_seconds: 0
+- argument: ${password}
+  message_type: KA
+- level: I
+  message: <redacted>
+  message_type: L
+  time_delta_in_seconds: 0
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: log
+  lineno: 12
+  message_type: SK
+  name: Hide From Output
+  source: <source>
+  time_delta_in_seconds: 0
+- argument: <redacted>
+  message_type: KA
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: ''
+  lineno: 13
+  message_type: SK
+  name: Some Keyword
   source: <source>
   time_delta_in_seconds: 0
 - argument: <redacted>
@@ -47,26 +90,16 @@
 - doc: <doc>
   keyword_type: KEYWORD
   libname: BuiltIn
-  lineno: 13
+  lineno: 19
   message_type: SK
-  name: Log To Console
+  name: Log
   source: <source>
   time_delta_in_seconds: 0
-- argument: <redacted>
+- argument: ${password}
   message_type: KA
-- message_type: EK
-  status: PASS
-  time_delta_in_seconds: 0
-- message_type: EK
-  status: PASS
-  time_delta_in_seconds: 0
-- doc: <doc>
-  keyword_type: KEYWORD
-  libname: log
-  lineno: 18
-  message_type: SK
-  name: Start Logging Keyword Arguments
-  source: <source>
+- level: I
+  message: <redacted>
+  message_type: L
   time_delta_in_seconds: 0
 - message_type: EK
   status: PASS

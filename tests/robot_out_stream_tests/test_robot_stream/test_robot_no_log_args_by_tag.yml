@@ -31,6 +31,8 @@
   name: These args should not be logged
   source: <source>
   time_delta_in_seconds: 0
+- argument: <redacted>
+  message_type: KA
 - doc: <doc>
   keyword_type: KEYWORD
   libname: BuiltIn
@@ -39,6 +41,8 @@
   name: Log To Console
   source: <source>
   time_delta_in_seconds: 0
+- argument: <redacted>
+  message_type: KA
 - message_type: EK
   status: PASS
   time_delta_in_seconds: 0
