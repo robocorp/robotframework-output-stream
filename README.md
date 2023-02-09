@@ -48,7 +48,7 @@ Install with:
 
 ## Dealing with sensitive data in the logs
 
-* [Handling Sensitive Data](/docs/handling_sensitive_data.md)
+* See: [Handling Sensitive Data](/docs/handling_sensitive_data.md)
 
 
 ## How
