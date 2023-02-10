@@ -6,7 +6,7 @@ import functools
 from io import StringIO
 import weakref
 
-__version__ = "0.0.5"
+__version__ = "0.0.6"
 version_info = [int(x) for x in __version__.split(".")]
 
 
