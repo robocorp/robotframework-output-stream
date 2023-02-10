@@ -76,11 +76,20 @@ def run_with_listener(
 
     created = []
 
-    def on_created(robot_out_stream, args, kwargs):
+    def before_created(robot_out_stream, args, kwargs):
         kwargs["__uuid__"] = "1234-uuid-in-tests"
         created.append(robot_out_stream)
 
-    with before(RFStream, "__init__", on_created):
+    def raise_error(msg):
+        raise AssertionError(msg)
+
+    def after_created(robot_out_stream, *args, **kwargs):
+        assert hasattr(robot_out_stream.robot_output_impl, "on_show_error_message")
+        robot_out_stream.robot_output_impl.on_show_error_message = raise_error
+
+    with before(RFStream, "__init__", before_created), after(
+        RFStream, "__init__", after_created
+    ):
         outdir_to_listener = str(outdir).replace(":", "<COLON>")
         if robot_file is None:
             robot_file = datadir / "robot1.robot"
@@ -284,6 +293,10 @@ def test_robot_embed_img(datadir, data_regression):
 
 def test_robot_no_log(datadir, data_regression):
     check(datadir, data_regression, "robot_nolog.robot")
+
+
+def test_robot_no_log_try_except(datadir, data_regression):
+    check(datadir, data_regression, "robot_nolog_try_except.robot")
 
 
 def test_robot_no_log_args(datadir, data_regression):
