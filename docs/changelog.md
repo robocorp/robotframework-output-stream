@@ -1,9 +1,16 @@
+New in 0.0.6 (2022-02-10)
+-----------------------------
+
+- Fixed issue where stopping logging would not add the start keyword but would end up adding the end keyword.
+
+
 New in 0.0.5 (2022-02-09)
 -----------------------------
 
 - Fixed one issue generating the output from the standard Robot Framework XML.
 - Added API to stop and start logging keywords or keyword arguments.
 - Added API to add a string to be hidden from the logs.
+- Hiding information through tags in keywords (`log:ignore-variables` and `log:ignore-keywords`).
 - Automatically hide the contents of variables named `*password*` or `*passwd*`. 
 
 

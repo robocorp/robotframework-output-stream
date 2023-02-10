@@ -48,7 +48,22 @@ Sensitive data obtained from APIs
 When handling sensitive data from APIs (such as private user information obtained from an API, as the SSN
 or medical data) the preferred API is disabling the logging for variables.
 
-To do that, the API available is `Stop logging variables`, `Start logging variables`:
+This can be done either through a `log:ignore-variables` tag in the related keyword 
+(which may be preferred as the stop/start is managed) or through the
+`Stop logging variables`, `Start logging variables` APIs.
+
+Example using tag:
+
+```robotframework
+
+*** Keyword ***
+Handle sensitive info
+    [Tags]    log:ignore-variables
+    # Obtain and handle sensitive info
+
+```
+
+Example using API:
 
 ```robotframework
 
@@ -70,11 +85,22 @@ Handle sensitive info
 
 
 If even the keywords called could be used to compromise some information, it's possible
-to completely stop the logging with the `Stop logging keywords` and `Start logging keywords` APIs
-(see below). 
+to completely stop the logging with the `log:ignore-keywords` tag or through the
+`Stop logging keywords` and `Start logging keywords` APIs. 
 
 Note: this may make debugging a failure harder as keyword calls won't be logged, 
 albeit you may still call `Log` with a log level of `WARN, FAIL or ERROR` to explicitly log something in this case.
+
+Example using tag:
+
+*** Keyword ***
+Handle sensitive info
+    [Tags]    log:ignore-keywords
+    # Obtain and handle sensitive info
+
+```
+
+Example using API:
 
 ```robotframework
 

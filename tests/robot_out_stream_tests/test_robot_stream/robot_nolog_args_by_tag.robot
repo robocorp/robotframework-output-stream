@@ -18,5 +18,5 @@ This should be logged
     Log To Console    ${arg1} - ${arg2}
 
 Some Keyword
-    [Tags]    log:ignore-keyword-arguments
+    [Tags]    log:ignore-variables
     These args should not be logged    1    2

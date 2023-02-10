@@ -278,7 +278,7 @@ class RFStream:
         if tags:
             if "log:ignore-keywords" in tags:
                 self._skip_log_keywords += 1
-            if "log:ignore-keyword-arguments" in tags:
+            if "log:ignore-variables" in tags:
                 self._skip_log_arguments += 1
 
         name = attributes["kwname"]
@@ -387,7 +387,7 @@ class RFStream:
             if tags:
                 if "log:ignore-keywords" in tags:
                     self._skip_log_keywords -= 1
-                if "log:ignore-keyword-arguments" in tags:
+                if "log:ignore-variables" in tags:
                     self._skip_log_arguments -= 1
 
     @log_error
