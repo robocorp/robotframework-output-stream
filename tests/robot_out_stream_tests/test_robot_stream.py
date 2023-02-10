@@ -295,6 +295,10 @@ def test_robot_no_log(datadir, data_regression):
     check(datadir, data_regression, "robot_nolog.robot")
 
 
+@pytest.mark.skipif(
+    get_robot_major_version() < 5,
+    reason="Try not available on older versions of robot.",
+)
 def test_robot_no_log_try_except(datadir, data_regression):
     check(datadir, data_regression, "robot_nolog_try_except.robot")
 

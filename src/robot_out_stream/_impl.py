@@ -454,7 +454,7 @@ class _RobotOutputImpl:
         start_time_delta,
         args,
         assigns,
-        hide_from_logs,
+        hide_from_logs=False,
     ):
         keyword_type = keyword_type.upper()
         oid = self._obtain_id
