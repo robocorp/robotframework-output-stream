@@ -1,0 +1,61 @@
+- message_type: V
+  version: '1'
+- initial_time: '2022-10-31T10:00:00.000'
+  message_type: T
+- id: 1234-uuid-in-tests
+  message_type: ID
+  part: 1
+- message_type: SS
+  name: Robot Nolog Try Except
+  suite_id: s1
+  suite_source: <source>
+  time_delta_in_seconds: 0
+- lineno: 6
+  message_type: ST
+  name: Check no log
+  suite_id: s1-t1
+  time_delta_in_seconds: 0
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: ''
+  lineno: 7
+  message_type: SK
+  name: Some Keyword
+  source: <source>
+  time_delta_in_seconds: 0
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: log
+  lineno: 17
+  message_type: SK
+  name: Stop Logging Keywords
+  source: <source>
+  time_delta_in_seconds: 0
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0
+- level: W
+  message: Still log this
+  message_type: L
+  time_delta_in_seconds: 0
+- doc: <doc>
+  keyword_type: KEYWORD
+  libname: log
+  lineno: 21
+  message_type: SK
+  name: Start Logging Keywords
+  source: <source>
+  time_delta_in_seconds: 0
+- message_type: EK
+  status: NOT RUN
+  time_delta_in_seconds: 0
+- message_type: EK
+  status: PASS
+  time_delta_in_seconds: 0
+- message: ''
+  message_type: ET
+  status: PASS
+  time_delta_in_seconds: 0
+- message_type: ES
+  status: PASS
+  time_delta_in_seconds: 0

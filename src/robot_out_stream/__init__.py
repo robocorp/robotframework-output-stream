@@ -271,6 +271,9 @@ class RFStream:
 
     @log_error
     def start_keyword(self, name, attributes):
+        # print("----start----\n", json.dumps(attributes, indent=4))
+
+        hide_from_logs = False
         tags = attributes.get("tags")
         if tags:
             if "log:ignore-keywords" in tags:
@@ -287,7 +290,7 @@ class RFStream:
                 "stoploggingkeywords",
                 "startloggingkeywords",
             ):
-                return
+                hide_from_logs = True
 
         # {
         #     "doc": "Does absolutely nothing.",
@@ -348,19 +351,15 @@ class RFStream:
             self._get_time_delta(attributes),
             args,
             kw_assign,
+            hide_from_logs=hide_from_logs,
         )
 
     @log_error
     def end_keyword(self, name, attributes):
+        # print("----end----\n", json.dumps(attributes, indent=4))
+
         try:
             name = attributes["kwname"]
-            if self._skip_log_keywords:
-                if name.lower().replace(" ", "") not in (
-                    "stoploggingkeywords",
-                    "startloggingkeywords",
-                ):
-                    return
-
             # {
             #     "doc": "Does absolutely nothing.",
             #     "assign": [],

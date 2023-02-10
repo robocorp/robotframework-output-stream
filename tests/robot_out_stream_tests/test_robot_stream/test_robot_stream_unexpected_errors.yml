@@ -42,3 +42,11 @@
 - message_type: ES
   status: PASS
   time_delta_in_seconds: 0
+- level: E
+  message: 'RFStream internal error: RFStream Warning: unable to pop suite - s1 (empty
+    queue).
+
+
+    '
+  message_type: L
+  time_delta_in_seconds: 0

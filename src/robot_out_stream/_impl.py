@@ -9,6 +9,7 @@ import os
 import traceback
 from contextlib import contextmanager
 import sys
+import weakref
 
 
 _valid_chars = tuple(string.ascii_letters + string.digits)
@@ -79,11 +80,12 @@ class _RotateHandler:
 
 
 class _StackEntry:
-    def __init__(self, entry_type, entry_id, msg_type, new_msg_type):
+    def __init__(self, entry_type, entry_id, msg_type, new_msg_type, hide_from_logs):
         self.entry_type = entry_type
         self.entry_id = entry_id
         self.msg_type = msg_type
         self.new_msg_type = new_msg_type
+        self.hide_from_logs = hide_from_logs
         self._messages: List[str] = []
 
     def append(self, msg: str):
@@ -96,17 +98,27 @@ class _StackEntry:
                 msg = msg.replace(self.msg_type, self.new_msg_type, 1)
             yield msg
 
+    def __str__(self):
+        return f"StackEntry({self.entry_type}, {self.entry_id}, {self.msg_type}, hide: {self.hide_from_logs})"
+
+    __repr__ = __str__
+
 
 class _StackHandler:
-    def __init__(self):
+    def __init__(self, robot_output_impl):
         self._queue = []
         self.recording_writes = False
         self._record_to = None
+        self._robot_output_impl = weakref.ref(robot_output_impl)
 
     @contextmanager
-    def push_record(self, entry_type, entry_id, msg_type, new_msg_type):
+    def push_record(
+        self, entry_type, entry_id, msg_type, new_msg_type, hide_from_logs=False
+    ):
         self.recording_writes = True
-        self._record_to = _StackEntry(entry_type, entry_id, msg_type, new_msg_type)
+        self._record_to = _StackEntry(
+            entry_type, entry_id, msg_type, new_msg_type, hide_from_logs
+        )
         try:
             yield
         finally:
@@ -116,18 +128,21 @@ class _StackHandler:
     def record_msg(self, msg):
         self._record_to.append(msg)
 
-    def pop(self, entry_type, entry_id):
+    def pop(self, entry_type, entry_id) -> Optional[_StackEntry]:
         if not self._queue:
-            sys.stderr.write(
-                f"RFStream Warning: unable to pop {entry_type} - {entry_id} (empty queue).\n"
-            )
+            impl = self._robot_output_impl()
+            if impl is not None:
+                impl.show_error_message(
+                    f"RFStream Warning: unable to pop {entry_type} - {entry_id} (empty queue).\n"
+                )
         else:
             stack_entry = self._queue[-1]
             if (
                 stack_entry.entry_type == entry_type
                 and stack_entry.entry_id == entry_id
             ):
-                self._queue.pop(-1)
+                return self._queue.pop(-1)
+
             else:
                 for i, stack_entry in enumerate(reversed(self._queue)):
                     if (
@@ -136,33 +151,42 @@ class _StackHandler:
                     ):
                         for _ in range(i):
                             stack_entry = self._queue.pop(-1)
-                            sys.stderr.write(
-                                f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
-                            )
+                            impl = self._robot_output_impl()
+                            if impl is not None:
+                                impl.show_error_message(
+                                    f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
+                                )
 
                         # The current one (which is a match).
-                        self._queue.pop(-1)
-                        return
+                        return self._queue.pop(-1)
 
                 if entry_type in ("test", "suite"):
                     for i, stack_entry in enumerate(reversed(self._queue)):
                         if stack_entry.entry_type == entry_type:
                             for _ in range(i):
                                 stack_entry = self._queue.pop(-1)
-                                sys.stderr.write(
-                                    f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
-                                )
+                                impl = self._robot_output_impl()
+                                if impl is not None:
+                                    impl.show_error_message(
+                                        f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} did not have a corresponding pop.\n"
+                                    )
 
                             # The current one (which is a partial match).
                             stack_entry = self._queue.pop(-1)
-                            sys.stderr.write(
-                                f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} pop just by type. Actual request: {entry_type} - {entry_id}\n"
-                            )
-                            return
+                            impl = self._robot_output_impl()
+                            if impl is not None:
+                                impl.show_error_message(
+                                    f"RFStream Warning: {stack_entry.entry_type} - {stack_entry.entry_id} pop just by type. Actual request: {entry_type} - {entry_id}\n"
+                                )
+                            return stack_entry
 
-                sys.stderr.write(
-                    f"RFStream Warning: unable to pop {entry_type} - {entry_id} because it does not match the current top: {stack_entry.entry_type} - {stack_entry.entry_id}\n"
-                )
+                impl = self._robot_output_impl()
+                if impl is not None:
+                    impl.show_error_message(
+                        f"RFStream Warning: unable to pop {entry_type} - {entry_id} because it does not match the current top: {stack_entry.entry_type} - {stack_entry.entry_id}\n"
+                    )
+
+        return None
 
     def __iter__(self):
         for stack_entry in self._queue:
@@ -202,7 +226,7 @@ class _RobotOutputImpl:
         else:
             self._initial_time = config.initial_time
 
-        self._stack_handler = _StackHandler()
+        self._stack_handler = _StackHandler(self)
 
         self._rotate_handler = _RotateHandler(
             config.max_file_size_in_bytes, config.max_files
@@ -215,8 +239,14 @@ class _RobotOutputImpl:
             self._current_entry = 1
             self._write_on_start_or_after_rotate()
 
+        self.on_show_error_message = None
         self._hide_strings_re: Optional[Pattern[str]] = None
         self._hide_strings: Set[str] = set()
+
+    def show_error_message(self, msg):
+        sys.stderr.write(msg)
+        if self.on_show_error_message:
+            self.on_show_error_message(msg)
 
     def hide_from_output(self, string_to_hide: str) -> None:
         import re
@@ -424,11 +454,18 @@ class _RobotOutputImpl:
         start_time_delta,
         args,
         assigns,
+        hide_from_logs=False,
     ):
         keyword_type = keyword_type.upper()
         oid = self._obtain_id
         keyword_id = f"{libname}.{name}"
-        with self._stack_handler.push_record("keyword", keyword_id, "SK", "RK"):
+        with self._stack_handler.push_record(
+            "keyword", keyword_id, "SK", "RK", hide_from_logs
+        ):
+            if hide_from_logs:
+                # I.e.: add to internal stack but don't write it.
+                return
+
             self._write_with_separator(
                 "SK ",
                 [
@@ -474,6 +511,12 @@ class _RobotOutputImpl:
     def end_keyword(self, name, libname, status, time_delta):
         keyword_id = f"{libname}.{name}"
         oid = self._obtain_id
+        stack_entry = self._stack_handler.pop("keyword", keyword_id)
+        if stack_entry is None or stack_entry.hide_from_logs:
+            # If the start wasn't logged, the stop shouldn't be logged either
+            # (and if it was logged, the stop should be also logged).
+            return
+
         self._write_with_separator(
             "EK ",
             [
@@ -481,7 +524,6 @@ class _RobotOutputImpl:
                 self._number(time_delta),
             ],
         )
-        self._stack_handler.pop("keyword", keyword_id)
 
     def log_message(self, level, message, time_delta, html):
         oid = self._obtain_id
