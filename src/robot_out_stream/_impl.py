@@ -186,6 +186,8 @@ class _StackHandler:
                         f"RFStream Warning: unable to pop {entry_type} - {entry_id} because it does not match the current top: {stack_entry.entry_type} - {stack_entry.entry_id}\n"
                     )
 
+        return None
+
     def __iter__(self):
         for stack_entry in self._queue:
             assert isinstance(stack_entry, _StackEntry)
